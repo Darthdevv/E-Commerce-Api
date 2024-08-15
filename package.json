@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "A comprehensive e-commerce API that powers an online store with features including product categorization by brands, shopping cart functionality, and order tracking. Perfect for managing product inventory, customer orders, and seamless shopping experiences.",
   "dependencies": {
+    "cloudinary": "^2.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
