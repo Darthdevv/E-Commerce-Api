@@ -5,11 +5,12 @@ import appError from "../utils/appError.js";
 import {cloudinaryConfig } from '../config/cloudinaryConfig.js';
 // models
 import { Category } from "../models/category.model.js";
+import { catchAsync } from "../helpers/catchAsync.js";
 
 /**
  * @api {POST} /categories/create  create a  new category
  */
-export const createCategory = async (req, res, next) => {
+export const createCategory = catchAsync(async (req, res, next) => {
   // destructuring the request body
   const { name } = req.body;
 
@@ -54,12 +55,12 @@ export const createCategory = async (req, res, next) => {
     message: "Category created successfully",
     data: newCategory,
   });
-};
+});
 
 /**
  * @api {GET} /categories Get category by name or id or slug
  */
-export const getCategory = async (req, res, next) => {
+export const getCategory = catchAsync(async (req, res, next) => {
   const { id, name, slug } = req.query;
   const queryFilter = {};
 
@@ -82,12 +83,12 @@ export const getCategory = async (req, res, next) => {
     message: "Category found",
     data: category,
   });
-};
+});
 
 /**
  * @api {PUT} /categories/update/:_id  Update a category
  */
-export const updateCategory = async (req, res, next) => {
+export const updateCategory = catchAsync(async (req, res, next) => {
   // get the category id
   const { _id } = req.params;
   // find the category by id
@@ -134,4 +135,4 @@ export const updateCategory = async (req, res, next) => {
     message: "Category updated successfully",
     data: category,
   });
-};
+});
