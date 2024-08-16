@@ -2,9 +2,9 @@ import slugify from "slugify";
 import { nanoid } from "nanoid";
 // utils
 import appError from "../utils/appError.js";
-import { cloudinaryConfig } from "../../Utils/cloudinary.utils.js";
+import {cloudinaryConfig } from '../config/cloudinaryConfig.js';
 // models
-import { Category } from "../../../DB/Models/index.js";
+import { Category } from "../models/category.model.js";
 
 /**
  * @api {POST} /categories/create  create a  new category
