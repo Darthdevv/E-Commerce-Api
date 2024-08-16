@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { DateTime } from "luxon";
 import { nanoid } from "nanoid";
-
+import appError from "../../utils/appError.js";
 import { extensions } from "../../utils/fileExtensions.js";
 
 export const multerMiddleware = ({
@@ -43,7 +43,7 @@ export const multerMiddleware = ({
     }
 
     cb(
-      new ErrorClass(
+      new appError(
         `Invalid file type, only ${allowedExtensions} images are allowed`,
         400,
         `Invalid file type, only ${allowedExtensions} images are allowed`
@@ -65,7 +65,7 @@ export const multerHost = ({ allowedExtensions = extensions.Images }) => {
     }
 
     cb(
-      new ErrorClass(
+      new appError(
         `Invalid file type, only ${allowedExtensions} images are allowed`,
         400,
         `Invalid file type, only ${allowedExtensions} images are allowed`
