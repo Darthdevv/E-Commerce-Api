@@ -30,6 +30,11 @@ const categorySchema = new Schema(
         unique: true,
       },
     },
+    customId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
   },
   { timestamps: true }
 );

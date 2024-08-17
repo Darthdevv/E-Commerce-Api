@@ -31,7 +31,7 @@ export const createCategory = catchAsync(async (req, res, next) => {
   const { secure_url, public_id } = await cloudinaryConfig().uploader.upload(
     req.file.path,
     {
-      folder: `${process.env.UPLOADS_FOLDER}/Categories/${customId}`,
+      folder: `uploads/categories/${customId}`,
     }
   );
 
