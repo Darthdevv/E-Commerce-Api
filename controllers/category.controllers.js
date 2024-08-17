@@ -31,7 +31,7 @@ export const createCategory = catchAsync(async (req, res, next) => {
   const { secure_url, public_id } = await cloudinaryConfig().uploader.upload(
     req.file.path,
     {
-      folder: `uploads/categories/${customId}`,
+      folder: `Uploads/Categories/${customId}`,
     }
   );
 
@@ -70,7 +70,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
   if (slug) queryFilter.slug = slug;
 
   // find the category
-  const category = await Category.findOne(queryFilter);
+  const category = await Category.find(queryFilter);
 
   if (!category) {
     return next(
@@ -81,6 +81,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: "Category found",
+    results: category.length,
     data: category,
   });
 });
