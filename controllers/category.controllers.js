@@ -87,12 +87,33 @@ export const getCategory = catchAsync(async (req, res, next) => {
 });
 
 /**
+ * @api {GET} /categories Get category by id
+ */
+export const getCategoryById = catchAsync(async (req, res, next) => {
+  // get the category id
+  const { id } = req.params;
+
+  // find the category by id
+  const category = await Category.findById(id);
+
+  if (!category) {
+    return next(new appError("Category not found", 404, "Category not found"));
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "Category found",
+    data: category,
+  });
+});
+
+/**
  * @api {PUT} /categories/update/:_id  Update a category
  */
 export const updateCategory = catchAsync(async (req, res, next) => {
   // get the category id
   const { id } = req.params;
-  console.log(id)
+
   // find the category by id
   const category = await Category.findById(id);
   if (!category) {
@@ -138,3 +159,32 @@ export const updateCategory = catchAsync(async (req, res, next) => {
     data: category,
   });
 });
+
+/**
+ * @api {DELETE} /categories/:_id  Delete a category
+ */
+export const deleteCategory = catchAsync(async (req, res, next) => {
+  // get the category id
+  const { id } = req.params;
+
+  // find catgory by id and delete it from DB
+  const category = await Category.findByIdAndDelete(id);
+
+  if (!category) {
+    return next(new appError("Category not found", 404, "Category not found"));
+  }
+
+  // Delete the category image and its folder from cloudinary
+  const categoryPath = `Uploads/Categories/${category.customId}`;
+  await cloudinaryConfig().api.delete_resources_by_prefix(categoryPath);
+  await cloudinaryConfig().api.delete_folder(categoryPath);
+
+  // Delete relevant subCategories from DB
+  // Delete relevant brands from DB
+
+    res.status(204).json({
+      status: "success",
+      message: "Category deleted successfully",
+      data: category,
+    });
+})
