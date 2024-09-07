@@ -8,6 +8,12 @@ import { Category } from "../models/category.model.js";
 const categoryRouter = Router();
 
 categoryRouter.route('/').get(getCategory).post(multerHost({ allowedExtensions: extensions.Images}).single("image"),findModelByName(Category), createCategory);
-categoryRouter.route("/:id").post(updateCategory);
+categoryRouter
+  .route("/:id")
+  .put(
+    multerHost({ allowedExtensions: extensions.Images }).single("image"),
+    findModelByName(Category),
+    updateCategory
+  );
 
 export { categoryRouter };

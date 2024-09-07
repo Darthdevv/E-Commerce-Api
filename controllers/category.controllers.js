@@ -91,16 +91,17 @@ export const getCategory = catchAsync(async (req, res, next) => {
  */
 export const updateCategory = catchAsync(async (req, res, next) => {
   // get the category id
-  const { _id } = req.params;
+  const { id } = req.params;
+  console.log(id)
   // find the category by id
-  const category = await Category.findById(_id);
+  const category = await Category.findById(id);
   if (!category) {
     return next(
       new appError("Category not found", 404, "Category not found")
     );
   }
   // name of the category
-  const { name, public_id_new } = req.body;
+  const { name, public_id } = req.body;
 
   if (name) {
     const slug = slugify(name, {
@@ -114,14 +115,14 @@ export const updateCategory = catchAsync(async (req, res, next) => {
 
   //Image
   if (req.file) {
-    const splitedPublicId = category.Images.public_id_new.split(
+    const splitedPublicId = category.Images.public_id.split(
       `${category.customId}/`
     )[1];
 
     const { secure_url } = await cloudinaryConfig().uploader.upload(
       req.file.path,
       {
-        folder: `${process.env.UPLOADS_FOLDER}/Categories/${category.customId}`,
+        folder: `Uploads/Categories/${category.customId}`,
         public_id: splitedPublicId,
       }
     );
