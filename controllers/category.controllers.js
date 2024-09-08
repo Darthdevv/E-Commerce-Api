@@ -60,7 +60,7 @@ export const createCategory = catchAsync(async (req, res, next) => {
 /**
  * @api {GET} /categories Get category by name or id or slug
  */
-export const getCategory = catchAsync(async (req, res, next) => {
+export const getCategories = catchAsync(async (req, res, next) => {
   const { id, name, slug } = req.query;
   const queryFilter = {};
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createCategory, deleteCategory, getCategory, getCategoryById, updateCategory } from "../controllers/category.controllers.js";
+import { createCategory, deleteCategory, getCategories, getCategoryById, updateCategory } from "../controllers/category.controllers.js";
 import { multerHost } from "../middlewares/upload/multer.middleware.js";
 import { extensions } from "../utils/fileExtensions.js";
 import { findModelByName } from "../middlewares/finder/findByName.middleware.js";
@@ -9,7 +9,7 @@ const categoryRouter = Router();
 
 categoryRouter
   .route("/")
-  .get(getCategory)
+  .get(getCategories)
   .post(
     multerHost({ allowedExtensions: extensions.Images }).single("image"),
     findModelByName(Category),
