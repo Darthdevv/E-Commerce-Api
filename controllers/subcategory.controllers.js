@@ -118,16 +118,19 @@ export const getSubCategoryById = catchAsync(async (req, res, next) => {
 });
 
 /**
- * @api {PUT} /categories/update/:_id  Update a category
+ * @api {PUT} /categories/:_id  Update a subcategory
  */
 export const updateSubCategory = catchAsync(async (req, res, next) => {
-  // get the category id
+  // get the subcategory id
   const { id } = req.params;
 
-  // find the category by id
-  const category = await Category.findById(id);
-  if (!category) {
-    return next(new appError("Category not found", 404, "Category not found"));
+  // find the subcategory by id
+  const subCategory = await SubCategory.findById(id).populate("categoryId");
+
+  if (!subCategory) {
+    return next(
+      new appError("SubCategory not found", 404, "SubCategory not found")
+    );
   }
   // name of the category
   const { name, public_id } = req.body;
@@ -138,61 +141,60 @@ export const updateSubCategory = catchAsync(async (req, res, next) => {
       lower: true,
     });
 
-    category.name = name;
-    category.slug = slug;
+    subCategory.name = name;
+    subCategory.slug = slug;
   }
 
   //Image
   if (req.file) {
-    const splitedPublicId = category.Images.public_id.split(
-      `${category.customId}/`
+    const splitedPublicId = subCategory.Images.public_id.split(
+      `${subCategory.customId}/`
     )[1];
 
     const { secure_url } = await cloudinaryConfig().uploader.upload(
       req.file.path,
       {
-        folder: `Uploads/Categories/${category.customId}`,
+        folder: `Uploads/Categories/${subCategory.categoryId.customId}/SubCategories/${subCategory.customId}`,
         public_id: splitedPublicId,
       }
     );
-    category.Images.secure_url = secure_url;
+    subCategory.Images.secure_url = secure_url;
   }
 
-  // save the category with the new changes
-  await category.save();
+  // save the subcategory with the new changes
+  await subCategory.save();
 
   res.status(200).json({
     status: "success",
     message: "Category updated successfully",
-    data: category,
+    data: subCategory,
   });
 });
 
 /**
- * @api {DELETE} /categories/:_id  Delete a category
+ * @api {DELETE} /categories/:_id  Delete a subcategory
  */
 export const deleteSubCategory = catchAsync(async (req, res, next) => {
-  // get the category id
+  // get the subcategory id
   const { id } = req.params;
 
-  // find catgory by id and delete it from DB
-  const category = await Category.findByIdAndDelete(id);
+  // find subcatgory by id and delete it from DB
+  const subCategory = await SubCategory.findByIdAndDelete(id).populate("categoryId");
 
-  if (!category) {
-    return next(new appError("Category not found", 404, "Category not found"));
+  if (!subCategory) {
+    return next(new appError("SubCategory not found", 404, "SubCategory not found"));
   }
 
-  // Delete the category image and its folder from cloudinary
-  const categoryPath = `Uploads/Categories/${category.customId}`;
-  await cloudinaryConfig().api.delete_resources_by_prefix(categoryPath);
-  await cloudinaryConfig().api.delete_folder(categoryPath);
+  // Delete the subcategory image and its folder from cloudinary
+  const subCategoryPath = `Uploads/Categories/${subCategory.categoryId.customId}/SubCategories/${subCategory.customId}`;
+  await cloudinaryConfig().api.delete_resources_by_prefix(subCategoryPath);
+  await cloudinaryConfig().api.delete_folder(subCategoryPath);
 
-  // Delete relevant subCategories from DB
   // Delete relevant brands from DB
 
   res.status(204).json({
     status: "success",
-    message: "Category deleted successfully",
-    data: category,
+    message: "SubCategory deleted successfully",
+    data: subCategory,
   });
 });
