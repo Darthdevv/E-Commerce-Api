@@ -97,7 +97,7 @@ export const getSubCategories = catchAsync(async (req, res, next) => {
 });
 
 /**
- * @api {GET} /subcategories Get subcategory by id
+ * @api {GET} /subcategories/:id Get subcategory by id
  */
 export const getSubCategoryById = catchAsync(async (req, res, next) => {
   // get the subcategory id
@@ -118,7 +118,7 @@ export const getSubCategoryById = catchAsync(async (req, res, next) => {
 });
 
 /**
- * @api {PUT} /categories/:_id  Update a subcategory
+ * @api {PUT} /subcategories/:id  Update a subcategory
  */
 export const updateSubCategory = catchAsync(async (req, res, next) => {
   // get the subcategory id
@@ -132,7 +132,7 @@ export const updateSubCategory = catchAsync(async (req, res, next) => {
       new appError("SubCategory not found", 404, "SubCategory not found")
     );
   }
-  // name of the category
+  // name of the subcategory
   const { name, public_id } = req.body;
 
   if (name) {
@@ -172,7 +172,7 @@ export const updateSubCategory = catchAsync(async (req, res, next) => {
 });
 
 /**
- * @api {DELETE} /categories/:_id  Delete a subcategory
+ * @api {DELETE} /subcategories/:id  Delete a subcategory
  */
 export const deleteSubCategory = catchAsync(async (req, res, next) => {
   // get the subcategory id
