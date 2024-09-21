@@ -13,38 +13,45 @@ import { Brand } from "../models/brand.model.js";
  * @api {POST} /brands create a new brand
  */
 export const createBrand = catchAsync(async (req, res, next) => {
-  // check categoryId exists
-  const { categoryId, subCategoryId } = req.query;
+  // Destructure subCategoryId from the request query
+  const { subCategoryId } = req.query;
 
-  const category = await Category.findById(categoryId);
-  const subcategory = await SubCategory.findById(subCategoryId);
+  // Fetch the subcategory and populate the associated categoryId
+  const subcategory = await SubCategory.findById(subCategoryId).populate('categoryId');
 
-  if (!category) {
-    return next(new appError("Category not found", 404, "Category not found"));
-  }
-
+  // Check if subcategory exists
   if (!subcategory) {
     return next(
       new appError("SubCategory not found", 404, "SubCategory not found")
     );
   }
-  // destructuring the request body
+
+  // Extract the category from the populated subcategory
+  const category = subcategory.categoryId;
+
+  // Check if category exists (in case subcategory has a broken relation)
+  if (!category) {
+    return next(new appError("Category not found", 404, "Category not found"));
+  }
+
+  // Destructure the request body to get the name of the brand
   const { name } = req.body;
 
-  // Generating subcategory slug
+  // Generate the slug for the brand name
   const slug = slugify(name, {
     replacement: "_",
     lower: true,
   });
 
-  // Logo
+  // Check if the logo file is uploaded
   if (!req.file) {
     return next(
       new appError("Please upload an image", 400, "Please upload an image")
     );
   }
-  // upload the logo to cloudinary
-  const customId = nanoid(4);
+
+  // Upload the logo to Cloudinary
+  const customId = nanoid(4); // Generate a unique customId for the brand
   const { secure_url, public_id } = await cloudinaryConfig().uploader.upload(
     req.file.path,
     {
@@ -52,7 +59,7 @@ export const createBrand = catchAsync(async (req, res, next) => {
     }
   );
 
-  // prepare brand object
+  // Prepare the brand object
   const brand = {
     name,
     slug,
@@ -65,10 +72,10 @@ export const createBrand = catchAsync(async (req, res, next) => {
     subCategoryId: subcategory._id,
   };
 
-  // create the brand in db
+  // Create the brand in the database
   const newBrand = await Brand.create(brand);
 
-  // send the response
+  // Send the response
   res.status(201).json({
     status: "success",
     message: "Brand created successfully",
@@ -132,18 +139,18 @@ export const getBrandById = catchAsync(async (req, res, next) => {
  * @api {PUT} /brands/:id  Update a specific brand
  */
 export const updateBrand = catchAsync(async (req, res, next) => {
-  // get the subcategory id
+  // get the brand id
   const { id } = req.params;
 
-  // find the subcategory by id
-  const subCategory = await SubCategory.findById(id).populate("categoryId");
+  // find the brand by id
+  const brand = await Brand.findById(id).populate("categoryId").populate("subCategoryId");
 
-  if (!subCategory) {
+  if (!brand) {
     return next(
-      new appError("SubCategory not found", 404, "SubCategory not found")
+      new appError("Brand not found", 404, "Brand not found")
     );
   }
-  // name of the subcategory
+  // name of the brand
   const { name, public_id } = req.body;
 
   if (name) {
@@ -152,33 +159,33 @@ export const updateBrand = catchAsync(async (req, res, next) => {
       lower: true,
     });
 
-    subCategory.name = name;
-    subCategory.slug = slug;
+    brand.name = name;
+    brand.slug = slug;
   }
 
-  //Image
+  //Logo
   if (req.file) {
-    const splitedPublicId = subCategory.Images.public_id.split(
-      `${subCategory.customId}/`
+    const splitedPublicId = brand.Logo.public_id.split(
+      `${brand.customId}/`
     )[1];
 
     const { secure_url } = await cloudinaryConfig().uploader.upload(
       req.file.path,
       {
-        folder: `Uploads/Categories/${subCategory.categoryId.customId}/SubCategories/${subCategory.customId}`,
+        folder: `Uploads/Categories/${brand.categoryId.customId}/SubCategories/${brand.subCategoryId.customId}/Brands/${brand.customId}`,
         public_id: splitedPublicId,
       }
     );
-    subCategory.Images.secure_url = secure_url;
+    brand.Logo.secure_url = secure_url;
   }
 
-  // save the subcategory with the new changes
-  await subCategory.save();
+  // save the brand with the new changes
+  await brand.save();
 
   res.status(200).json({
     status: "success",
-    message: "Category updated successfully",
-    data: subCategory,
+    message: "Brand updated successfully",
+    data: brand,
   });
 });
 
@@ -186,30 +193,28 @@ export const updateBrand = catchAsync(async (req, res, next) => {
  * @api {DELETE} /brands/:id  Delete a specific brand
  */
 export const deleteBrand = catchAsync(async (req, res, next) => {
-  // get the subcategory id
+  // get the brand id
   const { id } = req.params;
 
-  // find subcatgory by id and delete it from DB
-  const subCategory = await SubCategory.findByIdAndDelete(id).populate(
-    "categoryId"
-  );
+  // find brand by id and delete it from DB
+  const brand = await Brand.findByIdAndDelete(id).populate("categoryId").populate("subCategoryId");
 
-  if (!subCategory) {
+  if (!brand) {
     return next(
-      new appError("SubCategory not found", 404, "SubCategory not found")
+      new appError("Brand not found", 404, "Brand not found")
     );
   }
 
-  // Delete the subcategory image and its folder from cloudinary
-  const subCategoryPath = `Uploads/Categories/${subCategory.categoryId.customId}/SubCategories/${subCategory.customId}`;
-  await cloudinaryConfig().api.delete_resources_by_prefix(subCategoryPath);
-  await cloudinaryConfig().api.delete_folder(subCategoryPath);
+  // Delete the brand logo and its folder from cloudinary
+  const brandPath = `Uploads/Categories/${brand.categoryId.customId}/SubCategories/${brand.subCategoryId.customId}/Brands/${brand.customId}`;
+  await cloudinaryConfig().api.delete_resources_by_prefix(brandPath);
+  await cloudinaryConfig().api.delete_folder(brandPath);
 
-  // Delete relevant brands from DB
+  // Delete relevant products from DB
 
   res.status(204).json({
     status: "success",
-    message: "SubCategory deleted successfully",
-    data: subCategory,
+    message: "Brand deleted successfully",
+    data: brand,
   });
 });
