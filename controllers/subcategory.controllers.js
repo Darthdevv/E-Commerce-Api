@@ -7,6 +7,7 @@ import { cloudinaryConfig } from "../config/cloudinaryConfig.js";
 import { Category } from "../models/category.model.js";
 import { catchAsync } from "../helpers/catchAsync.js";
 import { SubCategory } from "../models/subcategory.model.js";
+import { Brand } from "../models/brand.model.js";
 
 /**
  * @api {POST} /subcategories create a new subcategory
@@ -191,6 +192,9 @@ export const deleteSubCategory = catchAsync(async (req, res, next) => {
   await cloudinaryConfig().api.delete_folder(subCategoryPath);
 
   // Delete relevant brands from DB
+  await Brand.deleteMany({
+    subCategoryId: subCategory.id
+  })
 
   res.status(204).json({
     status: "success",
