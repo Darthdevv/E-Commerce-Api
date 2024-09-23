@@ -1,4 +1,4 @@
-import { Brand } from "../models/brand.model";
-import { Category } from "../models/category.model";
-import { SubCategory } from "../models/subcategory.model";
-import { Product } from "../models/product.model";
+import { Brand } from "../models/brand.model.js";
+import { Category } from "../models/category.model.js";
+import { SubCategory } from "../models/subcategory.model.js";
+import { Product } from "../models/product.model.js";
