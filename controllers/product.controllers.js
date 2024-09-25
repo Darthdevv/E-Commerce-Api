@@ -11,7 +11,7 @@ import { cloudinaryConfig } from "../config/cloudinaryConfig.js";
 import { catchAsync } from "../helpers/catchAsync.js";
 
 /**
- * @api {POST} /categories/create  create a  new category
+ * @api {POST} /products  create a  new product
  */
 export const createProduct = catchAsync(async (req, res, next) => {
   // destructuring the request body
@@ -61,7 +61,7 @@ export const createProduct = catchAsync(async (req, res, next) => {
 });
 
 /**
- * @api {GET} /categories Get category by name or id or slug
+ * @api {GET} /products Get product by name or id or slug
  */
 export const getProducts = catchAsync(async (req, res, next) => {
   const { id, name, slug } = req.query;
@@ -88,7 +88,7 @@ export const getProducts = catchAsync(async (req, res, next) => {
 });
 
 /**
- * @api {GET} /categories Get category by id
+ * @api {GET} /products/:id Get product by id
  */
 export const getProductById = catchAsync(async (req, res, next) => {
   // get the category id
@@ -109,7 +109,7 @@ export const getProductById = catchAsync(async (req, res, next) => {
 });
 
 /**
- * @api {PUT} /categories/update/:_id  Update a category
+ * @api {PUT} /products/:_id  Update a product
  */
 export const updateProduct = catchAsync(async (req, res, next) => {
   // get the category id
@@ -160,7 +160,7 @@ export const updateProduct = catchAsync(async (req, res, next) => {
 });
 
 /**
- * @api {DELETE} /categories/:_id  Delete a category
+ * @api {DELETE} /products/:_id  Delete a product
  */
 export const deleteProduct = catchAsync(async (req, res, next) => {
   // get the category id
