@@ -61,29 +61,29 @@ export const createProduct = catchAsync(async (req, res, next) => {
 });
 
 /**
- * @api {GET} /products Get product by name or id or slug
+ * @api {GET} /products Get product by title or id or slug
  */
 export const getProducts = catchAsync(async (req, res, next) => {
-  const { id, name, slug } = req.query;
+  const { id, title, slug } = req.query;
   const queryFilter = {};
 
   // check if the query params are present
   if (id) queryFilter._id = id;
-  if (name) queryFilter.name = name;
+  if (title) queryFilter.name = title;
   if (slug) queryFilter.slug = slug;
 
-  // find the category
-  const category = await Category.find(queryFilter);
+  // find the products
+  const products = await Product.find(queryFilter);
 
-  if (!category) {
-    return next(new appError("Category not found", 404, "Category not found"));
+  if (!products) {
+    return next(new appError("Product not found", 404, "Product not found"));
   }
 
   res.status(200).json({
     status: "success",
-    message: "Category found",
-    results: category.length,
-    data: category,
+    message: "Product found",
+    results: products.length,
+    data: products,
   });
 });
 
@@ -91,20 +91,20 @@ export const getProducts = catchAsync(async (req, res, next) => {
  * @api {GET} /products/:id Get product by id
  */
 export const getProductById = catchAsync(async (req, res, next) => {
-  // get the category id
+  // get the product id
   const { id } = req.params;
 
-  // find the category by id
-  const category = await Category.findById(id);
+  // find the product by id
+  const product = await Product.findById(id);
 
-  if (!category) {
-    return next(new appError("Category not found", 404, "Category not found"));
+  if (!product) {
+    return next(new appError("Product not found", 404, "Product not found"));
   }
 
   res.status(200).json({
     status: "success",
-    message: "Category found",
-    data: category,
+    message: "Product found",
+    data: product,
   });
 });
 
