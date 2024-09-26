@@ -55,7 +55,7 @@ const productSchema = new Schema(
     },
     // Images
     images: {
-      URLs: {
+      URLs: [{
         secure_url: {
           type: String,
           required: true,
@@ -65,7 +65,7 @@ const productSchema = new Schema(
           required: true,
           unique: true,
         }
-      },
+      }],
       customId: {
         type: String,
         required: true,

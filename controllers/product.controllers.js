@@ -7,7 +7,7 @@ import slugify from "slugify";
 import { nanoid } from "nanoid";
 // utils
 import appError from "../utils/appError.js";
-import { cloudinaryConfig } from "../config/cloudinaryConfig.js";
+import { cloudinaryConfig, uploadFile } from "../config/cloudinaryConfig.js";
 import { catchAsync } from "../helpers/catchAsync.js";
 
 /**
@@ -15,48 +15,88 @@ import { catchAsync } from "../helpers/catchAsync.js";
  */
 export const createProduct = catchAsync(async (req, res, next) => {
   // destructuring the request body
-  const { name } = req.body;
+  const { title, specs, overview, price, discountAmount, discountType, stock } = req.body;
 
-  // Generating category slug
-  const slug = slugify(name, {
+  // getting Ids from query params
+  const { categoryId, subCategoryId, brandId } = req.query;
+
+  // checking for Ids
+  const requiredBrand = await Brand.findOne({
+    _id: brandId,
+    categoryId,
+    subCategoryId
+  }).populate("categoryId").populate("subCategoryId");
+
+  if (!requiredBrand) {
+    return next(new appError("Brand Not Found", 404, "Brand Not Found"));
+  }
+
+  // Generating product slug
+  const slug = slugify(title, {
     replacement: "_",
     lower: true,
   });
 
-  // Image
-  if (!req.file) {
-    return next(
-      new appError("Please upload an image", 400, "Please upload an image")
-    );
+  // checking for files
+  if (!req.files.length) {
+    return next(new appError("No Images Uploaded", 404, "No Images Uploaded"));
   }
-  // upload the image to cloudinary
-  const customId = nanoid(4);
-  const { secure_url, public_id } = await cloudinaryConfig().uploader.upload(
-    req.file.path,
-    {
-      folder: `Uploads/Categories/${customId}`,
-    }
-  );
 
-  // prepare category object
-  const category = {
-    name,
+  //prices
+  let priceAfterDiscount = price;
+  if (discountAmount && discountType) {
+    if (discountType == "Percentage") {
+      priceAfterDiscount = price - (discountAmount * price) / 100;
+    } else if (discountType == "Fixed") {
+      priceAfterDiscount = price - discountAmount;
+    }
+  }
+
+  const categoryCustomId = requiredBrand.categoryId.customId;
+  const subCategoryCustomId = requiredBrand.subCategoryId.customId;
+  const brandCustomId = requiredBrand.customId;
+  const customId = nanoid(4);
+  const folder = `Uploads/Categories/${categoryCustomId}/SubCategories/${subCategoryCustomId}/Brands/${brandCustomId}/Products/${customId}`
+  const URLs = [];
+  for (const file of req.files) {
+    // upload each image to cloudinary
+    const { secure_url, public_id } = await uploadFile({
+      file: file.path,
+      folder,
+    });
+    URLs.push({ secure_url, public_id });
+  }
+
+  // prepare product object
+  const product = {
+    title,
     slug,
-    Images: {
-      secure_url,
-      public_id,
+    overview,
+    specs: JSON.parse(specs),
+    price,
+    priceAfterDiscount,
+    discount: {
+      type: discountType,
+      amount: discountAmount,
     },
-    customId,
+    stock,
+    images: {
+      URLs,
+      customId,
+    },
+    categoryId: requiredBrand.categoryId._id,
+    subCategoryId: requiredBrand.subCategoryId._id,
+    brandId: requiredBrand._id,
   };
 
-  // create the category in db
-  const newCategory = await Category.create(category);
+  // create the product in db
+  const newProduct = await Product.create(product);
 
   // send the response
   res.status(201).json({
     status: "success",
-    message: "Category created successfully",
-    data: newCategory,
+    message: "Product created successfully",
+    data: newProduct,
   });
 });
 

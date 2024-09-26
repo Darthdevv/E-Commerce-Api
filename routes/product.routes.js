@@ -17,7 +17,7 @@ productRouter
   .route("/")
   .get(getProducts)
   .post(
-    multerHost({ allowedExtensions: extensions.Images }).single("image"),
+    multerHost({ allowedExtensions: extensions.Images }).array("image", 5),
     findModelByName(Product),
     createProduct
   );
