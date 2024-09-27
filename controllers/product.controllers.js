@@ -155,6 +155,7 @@ export const updateProduct = catchAsync(async (req, res, next) => {
 
   // find the product by id
   const product = await Product.findById(id);
+
   if (!product) {
     return next(new appError("Product not found", 404, "Product not found"));
   }
