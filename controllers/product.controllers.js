@@ -152,50 +152,51 @@ export const getProductById = catchAsync(async (req, res, next) => {
  * @api {PUT} /products/:_id  Update a product
  */
 export const updateProduct = catchAsync(async (req, res, next) => {
-  // get the category id
+  // get the product id
   const { id } = req.params;
 
-  // find the category by id
-  const category = await Category.findById(id);
-  if (!category) {
-    return next(new appError("Category not found", 404, "Category not found"));
+  // find the product by id
+  const product = await Product.findById(id);
+  if (!product) {
+    return next(new appError("Product not found", 404, "Product not found"));
   }
-  // name of the category
-  const { name, public_id } = req.body;
+  // name of the product
+  const { title, public_id } = req.body;
 
-  if (name) {
-    const slug = slugify(name, {
+  if (title) {
+    const slug = slugify(title, {
       replacement: "_",
       lower: true,
     });
 
-    category.name = name;
-    category.slug = slug;
+    product.title = title;
+    product.slug = slug;
   }
 
   //Image
   if (req.file) {
-    const splitedPublicId = category.Images.public_id.split(
-      `${category.customId}/`
+    const splitedPublicId = product.Images.public_id.split(
+      `${product.customId}/`
     )[1];
 
     const { secure_url } = await cloudinaryConfig().uploader.upload(
       req.file.path,
       {
-        folder: `Uploads/Categories/${category.customId}`,
+        folder: `Uploads/Categories/${product.customId}`,
         public_id: splitedPublicId,
       }
     );
-    category.Images.secure_url = secure_url;
+    product.Images.secure_url = secure_url;
   }
 
-  // save the category with the new changes
-  await category.save();
+  // save the product with the new changes
+  await product.save();
 
+  // send the response
   res.status(200).json({
     status: "success",
-    message: "Category updated successfully",
-    data: category,
+    message: "Product updated successfully",
+    data: product,
   });
 });
 
