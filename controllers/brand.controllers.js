@@ -4,7 +4,6 @@ import { nanoid } from "nanoid";
 import appError from "../utils/appError.js";
 import { cloudinaryConfig } from "../config/cloudinaryConfig.js";
 // models
-import { Category } from "../models/category.model.js";
 import { catchAsync } from "../helpers/catchAsync.js";
 import { SubCategory } from "../models/subcategory.model.js";
 import { Brand } from "../models/brand.model.js";
