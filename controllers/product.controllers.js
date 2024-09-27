@@ -203,37 +203,28 @@ export const updateProduct = catchAsync(async (req, res, next) => {
  * @api {DELETE} /products/:_id  Delete a product
  */
 export const deleteProduct = catchAsync(async (req, res, next) => {
-  // get the category id
+  // get the product id
   const { id } = req.params;
 
-  // find catgory by id and delete it from DB
-  const category = await Category.findByIdAndDelete(id);
+  // find product by id and delete it from DB
+  const product = await Product.findByIdAndDelete(id)
+    .populate("categoryId")
+    .populate("subCategoryId")
+    .populate("brandId");
 
-  if (!category) {
-    return next(new appError("Category not found", 404, "Category not found"));
+  if (!product) {
+    return next(new appError("Product not found", 404, "Product not found"));
   }
 
-  // Delete the category image and its folder from cloudinary
-  const categoryPath = `Uploads/Categories/${category.customId}`;
-  await cloudinaryConfig().api.delete_resources_by_prefix(categoryPath);
-  await cloudinaryConfig().api.delete_folder(categoryPath);
+  // Delete the product image and its folder from cloudinary
+  const productPath = `Uploads/Categories/${product.categoryId.customId}/SubCategories/${product.subCategoryId.customId}/Brands/${product.brandId.customId}/Products/${product.images.customId}`;
+  await cloudinaryConfig().api.delete_resources_by_prefix(productPath);
+  await cloudinaryConfig().api.delete_folder(productPath);
 
-  // Delete relevant subCategories from DB
-  const deletedSubCategories = await SubCategory.deleteMany({
-    categoryId: id,
-  });
-  // Delete relevant brands from DB
-  if (deletedSubCategories.deletedCount) {
-    await Brand.deleteMany({
-      categoryId: id,
-    });
-
-    /// Delete Relevant products from DB
-  }
-
+  // send the response
   res.status(204).json({
     status: "success",
-    message: "Category deleted successfully",
-    data: category,
+    message: "Product deleted successfully",
+    data: product,
   });
 });
