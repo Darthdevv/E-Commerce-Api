@@ -2,8 +2,8 @@ import appError from "../../utils/appError.js";
 
 export const findModelByName = (model) => {
   return async (req, res, next) => {
-    const { name } = req.body;
-    const document = await model.findOne({ name });
+    const { name , title } = req.body;
+    const document = await model.findOne({ name, title });
 
     if (document) {
       return next(new appError(

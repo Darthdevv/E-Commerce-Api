@@ -13,7 +13,15 @@ import { catchAsync } from "../helpers/catchAsync.js";
  */
 export const createProduct = catchAsync(async (req, res, next) => {
   // destructuring the request body
-  const { title, specs, overview, price, discountAmount, discountType, stock } = req.body;
+  const {
+    title,
+    specifications,
+    overview,
+    price,
+    discountAmount,
+    discountType,
+    stock,
+  } = req.body;
 
   // getting Ids from query params
   const { categoryId, subCategoryId, brandId } = req.query;
@@ -70,7 +78,7 @@ export const createProduct = catchAsync(async (req, res, next) => {
     title,
     slug,
     overview,
-    specs: JSON.parse(specs),
+    specifications: JSON.parse(specifications),
     price,
     priceAfterDiscount,
     discount: {
@@ -150,18 +158,31 @@ export const getProductById = catchAsync(async (req, res, next) => {
  * @api {PUT} /products/:_id  Update a product
  */
 export const updateProduct = catchAsync(async (req, res, next) => {
-  // get the product id
+  // get the product id from params
   const { id } = req.params;
 
   // find the product by id
-  const product = await Product.findById(id);
+  const product = await Product.findById(id)
+    .populate("categoryId")
+    .populate("subCategoryId")
+    .populate("brandId");
 
   if (!product) {
     return next(new appError("Product not found", 404, "Product not found"));
   }
-  // name of the product
-  const { title, public_id } = req.body;
 
+  const {
+    title,
+    stock,
+    overview,
+    badge,
+    price,
+    discountAmount,
+    discountType,
+    specifications,
+  } = req.body;
+
+  // title and slug of the product
   if (title) {
     const slug = slugify(title, {
       replacement: "_",
@@ -172,20 +193,62 @@ export const updateProduct = catchAsync(async (req, res, next) => {
     product.slug = slug;
   }
 
-  //Image
+  // stock of product
+  if (stock) product.stock = stock;
+
+  // specifications of product
+  if (specifications) product.specifications = JSON.parse(specifications);
+
+  // overview of product
+  if (overview) product.overview = overview;
+
+  // stock of product
+  if (stock) product.stock = stock;
+
+  // badge of product
+  if (badge) product.badge = badge;
+
+  // price and discount of the product
+  if (price || discountAmount || discountType) {
+    const newPrice = price || product.price;
+    const newDiscount = {};
+    newDiscount.amount = discountAmount || product.discount.amount;
+    newDiscount.type = discountType || product.discount.type;
+
+    if (newDiscount.type == "Percentage") {
+      product.priceAfterDiscount =
+        newPrice - (newDiscount.amount * newPrice) / 100;
+    } else if (newDiscount.type == "Fixed") {
+      product.priceAfterDiscount = newPrice - newDiscount.amount;
+    } else {
+      product.priceAfterDiscount = newPrice;
+    }
+
+    product.price = newPrice;
+    product.discount = newDiscount;
+  }
+
+  // image of the product
   if (req.file) {
-    const splitedPublicId = product.Images.public_id.split(
-      `${product.customId}/`
+    const splitedPublicId = product.images.URLs[0].public_id.split(
+      `${product.images.customId}/`
     )[1];
 
     const { secure_url } = await cloudinaryConfig().uploader.upload(
       req.file.path,
       {
-        folder: `Uploads/Categories/${product.customId}`,
+        folder: `Uploads/Categories/${product.categoryId.customId}/SubCategories/${product.subCategoryId.customId}/Brands/${product.brandId.customId}/Products/${product.images.customId}`,
         public_id: splitedPublicId,
       }
     );
-    product.Images.secure_url = secure_url;
+
+    // Find the image in the URLs array and update its secure_url
+    product.images.URLs = product.images.URLs.map((imageObj) => {
+      if (imageObj.public_id === splitedPublicId) {
+        imageObj.secure_url = secure_url;
+      }
+      return imageObj;
+    });
   }
 
   // save the product with the new changes
