@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from "../db/global.setup.js";
 const { Schema, model } = mongoose;
 
 const productSchema = new Schema(

@@ -7,6 +7,7 @@ import { nanoid } from "nanoid";
 import appError from "../utils/appError.js";
 import { cloudinaryConfig, uploadFile } from "../config/cloudinaryConfig.js";
 import { catchAsync } from "../helpers/catchAsync.js";
+import APIFeatures from "../utils/apiFeatures.js"
 
 /**
  * @api {POST} /products  create a  new product
@@ -110,16 +111,35 @@ export const createProduct = catchAsync(async (req, res, next) => {
  * @api {GET} /products Get product by title or id or slug
  */
 export const getProducts = catchAsync(async (req, res, next) => {
-  const { id, title, slug } = req.query;
-  const queryFilter = {};
+  // const { id, title, slug } = req.query;
+  // const queryFilter = {};
 
   // check if the query params are present
-  if (id) queryFilter._id = id;
-  if (title) queryFilter.name = title;
-  if (slug) queryFilter.slug = slug;
+  // if (id) queryFilter._id = id;
+  // if (title) queryFilter.name = title;
+  // if (slug) queryFilter.slug = slug;
 
   // find the products
-  const products = await Product.find(queryFilter);
+  // const products = await Product.find(queryFilter);
+
+  // const { page = 1, limit = 5 } = req.query;
+  // const skip = (page - 1) * limit;
+
+  // const products = await Product.paginate({}, {
+  //   page,
+  //   skip,
+  //   limit,
+  //   select: "-__v -images"
+  // })
+
+  const features = new APIFeatures(
+    Product.find(),
+    req.query
+  )
+    .filter()
+    .sort()
+    .paginate();
+  const products = await features.query;
 
   if (!products) {
     return next(new appError("Product not found", 404, "Product not found"));
